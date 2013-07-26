@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="/Copy of SampleTibbrAPI/lib"/>
 	<classpathentry kind="lib" path="/Users/bensunderland/git/sample_tibbr_api/Copy of SampleTibbrAPI/lib/commons-codec-1.6.jar"/>
 	<classpathentry kind="lib" path="/Users/bensunderland/git/sample_tibbr_api/Copy of SampleTibbrAPI/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="/Users/bensunderland/git/sample_tibbr_api/Copy of SampleTibbrAPI/lib/fluent-hc-4.2.1.jar"/>

@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-public class SampleTibbrMethod {
+public class CreateTibbrSubjects {
 	
 	
 
@@ -45,7 +45,7 @@ public class SampleTibbrMethod {
 	private String client_key=null;
 	
 	
-public SampleTibbrMethod(String _urlbase, String _username, String _password){
+public CreateTibbrSubjects(String _urlbase, String _username, String _password){
 		
 		this.urlBase=_urlbase;
 		this.username=_username;
@@ -339,7 +339,7 @@ Node firstElementByTag(Document d, String tag) {
 
 public static void main(String[] args) {
 	
-	SampleTibbrMethod tibbr = new SampleTibbrMethod("https://tibbrdemo.tibbr.com","bsunderl","password");
+	CreateTibbrSubjects tibbr = new CreateTibbrSubjects("https://tibbrdemo.tibbr.com","bsunderl","password");
 
  	
 	try {
