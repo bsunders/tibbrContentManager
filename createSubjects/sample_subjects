@@ -1,33 +1,3 @@
-HLB,tibbradmin,jwalford,HLB Subject,public,HLB
-HLB.Location,tibbradmin,jwalford,HLB Subject,public,Location / Offices
-HLB.Location.Adelaide,tibbradmin,jwalford,HLB Subject,public,Adelaide
-HLB.Location.Auckland,tibbradmin,jwalford,HLB Subject,public,Auckland
-HLB.Location.Brisbane,tibbradmin,jwalford,HLB Subject,public,Brisbane
-HLB.Location.Gold Coast,tibbradmin,jwalford,HLB Subject,public,Gold Coast
-HLB.Location.Melbourne,tibbradmin,jwalford,HLB Subject,public,Melbourne
-HLB.Location.Perth,tibbradmin,jwalford,HLB Subject,public,Perth
-HLB.Location.Perth_Insolvency_WA,tibbradmin,jwalford,HLB Subject,public,Perth (Insolvency WA)
-HLB.Location.Sydney,tibbradmin,jwalford,HLB Subject,public,Sydney
-HLB.Location.Hobart,tibbradmin,jwalford,HLB Subject,public,Hobart
-HLB.Location.Lismore,tibbradmin,jwalford,HLB Subject,public,Lismore
-HLB.Location.Wollongong,tibbradmin,jwalford,HLB Subject,public,Wollongong
-HLB.Divisions,tibbradmin,jwalford,HLB Subject,public,Divisions
-HLB.Divisions.HR,tibbradmin,jwalford,HLB Subject,public,HR
-HLB.Divisions.IT,tibbradmin,jwalford,HLB Subject,public,IT
-HLB.Divisions.Marketing_and_BD,tibbradmin,jwalford,HLB Subject,public,Marketing & BD
-HLB.Divisions.Audit_and_Assurance,tibbradmin,jwalford,HLB Subject,public,Audit and Assurance
-HLB.Divisions.Business_Recovery,tibbradmin,jwalford,HLB Subject,public,Business Recovery
-HLB.Divisions.Business_Services,tibbradmin,jwalford,HLB Subject,public,Business Services
-HLB.Divisions.Consulting_Services,tibbradmin,jwalford,HLB Subject,public,Consulting Services
-HLB.Divisions.Corporate_Advisory,tibbradmin,jwalford,HLB Subject,public,Corporate Advisory
-HLB.Divisions.Wealth_Management,tibbradmin,jwalford,HLB Subject,public,Wealth Management
-HLB.Divisions.Tax_Consulting,tibbradmin,jwalford,HLB Subject,public,Tax Consulting
-HLB.Divisions.Speciality_Services,tibbradmin,jwalford,HLB Subject,public,Speciality Services
-HLB.Industries,tibbradmin,jwalford,HLB Subject,public,Industries
-HLB.Industries.Aged_Care,tibbradmin,jwalford,HLB Subject,public,Aged Care
-HLB.Industries.Financial_Services,tibbradmin,jwalford,HLB Subject,public,Financial Services
-HLB.Industries.Health,tibbradmin,jwalford,HLB Subject,public,Health
-HLB.Industries.Hospitality ,tibbradmin,jwalford,HLB Subject,public,Hospitality 
-HLB.Industries.Legal,tibbradmin,jwalford,HLB Subject,public,Legal
-HLB.Industries.Mining_and_Resources,tibbradmin,jwalford,HLB Subject,public,Mining and Resources
-HLB.Industries.Property_and_Construction,tibbradmin,jwalford,HLB Subject,public,Property and Construction
+ContentManagerTest,Content Manager Test Subject,public
+ContentManagerTest.A,A Subject,public
+ContentManagerTest.A.A_CHILD,As child Subject,public

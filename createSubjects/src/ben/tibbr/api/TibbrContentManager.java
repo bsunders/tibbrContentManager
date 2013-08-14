@@ -1,4 +1,4 @@
-package sample.tibbr.api;
+package ben.tibbr.api;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -33,10 +33,9 @@ import org.xml.sax.SAXException;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-public class CreateTibbrSubjects {
+public class TibbrContentManager {
 	
 	
-
 
 	private String username;
 	private String password;
@@ -45,7 +44,7 @@ public class CreateTibbrSubjects {
 	private String client_key=null;
 	
 	
-public CreateTibbrSubjects(String _urlbase, String _username, String _password){
+public TibbrContentManager(String _urlbase, String _username, String _password){
 		
 		this.urlBase=_urlbase;
 		this.username=_username;
@@ -55,13 +54,12 @@ public CreateTibbrSubjects(String _urlbase, String _username, String _password){
 }
 
 // logs in as specified user and sets the class member "auth_token" which is needed for all subsequent API calls
-public void loginUser() throws UnsupportedEncodingException{
+public Boolean loginUser() throws UnsupportedEncodingException{
 	
 	DefaultHttpClient httpClient = new DefaultHttpClient();
 	System.out.println("URL: "+urlBase+"/a/users/login.xml");  // THIS IS A POST
 	System.out.println("client_key: " + this.client_key); 
 	HttpPost postRequest = new HttpPost(urlBase+"/a/users/login.xml");
-	
 	
 	StringEntity input = new StringEntity("params[login]=" + URLEncoder.encode(this.username,"UTF-8") + 
             							  "&params[password]=" + URLEncoder.encode(this.password,"UTF-8") + 
@@ -70,13 +68,22 @@ public void loginUser() throws UnsupportedEncodingException{
 	input.setContentType("application/x-www-form-urlencoded");
 	postRequest.setEntity(input); // attach params to request
 	
-	String body;
 	try {
 		HttpResponse response = httpClient.execute(postRequest); // execute POST
-		body = readStream(response.getEntity().getContent());
-		Document user = parseXml(body);
-	    Node auth_token_node = firstElementByTag(user, "auth-token");
-		this.auth_token=auth_token_node.getNodeValue();
+		String body = readStream(response.getEntity().getContent()); // get text output from response
+		Document xmlDoc = parseXml(body); // convert to xml doc
+		
+		if (xmlContainsError(xmlDoc)){
+			System.out.println("Login Failed. Please check account details and try again.\n");
+			return false;
+		}else
+		{
+			Node auth_token_node = firstElementByTag(xmlDoc, "auth-token");
+			this.auth_token=auth_token_node.getNodeValue();
+			System.out.println("Login Successful with auth token:"+ auth_token.toString());
+			return true;
+		}
+		
 		
 		
 	} catch (ClientProtocolException e) {
@@ -89,6 +96,7 @@ public void loginUser() throws UnsupportedEncodingException{
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
+	return false;
 	
 	
 	
@@ -107,9 +115,11 @@ public void getAllUsers(){
 		try {
 			HttpResponse response = httpClient.execute(getRequest);
 			
-			String body = readStream(response.getEntity().getContent());
+			//String body = readStream(response.getEntity().getContent());
 			//Document user = parseXml(body);
-			System.out.println(body);
+		    //Node auth_token_node = firstElementByTag(user, "auth-token");
+			//this.auth_token=auth_token_node.getNodeValue();
+			
 			
 	        
 		} catch (ClientProtocolException e) {
@@ -126,6 +136,8 @@ public void getAllUsers(){
 
 public void createMessages(String message){
 	
+	// call this to get all the user IDs in to hashmap.
+	getAllUsers();
 	URL server;
 	try {
 		server = new URL(this.urlBase+"/a"+"/messages.xml");   // POST
@@ -171,42 +183,42 @@ public void createSubjectsFromFile(String csvFilename){
 		while((row = csvReader.readNext()) != null) {		
 
 			server = new URL(this.urlBase+"/a"+"/subjects.xml");
-			
 			HttpURLConnection conn= (HttpURLConnection)server.openConnection();
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setRequestProperty("content-type", "text/xml");
-	
-			
 			conn.setRequestProperty("auth_token", this.auth_token);
 			conn.setRequestProperty("client_key", this.client_key);
-	
 			
+			//String subjectOwnerID = getUserIDfromUserName(row[1]);
 			OutputStream out = conn.getOutputStream();
 	 
-				String message="<subject>" + 
+			String message="<subject>" + 
 	            "<name>"+row[0]+"</name>" +
-	            "<description>"+row[3]+"</description>"+
-	            "<scope>"+row[4]+"</scope>" + 
-	            "<allow-children>1</allow-children>"+
-	            "<user-id>15</user-id>"+
+	            "<description>"+row[1]+"</description>"+
+	            "<scope>"+row[2]+"</scope>" + 
+	            "<allow-children>1</allow-children>"+     // note you cant assign owner other than logged in user
+	            "<user-id>1</user-id>"+
 	            "</subject>";
 	            
-	            //HLB,tibbradmin,jwalford,HLB Subject,public,HLB
-				
-				System.out.println(message);
-				System.out.println("============");
-				out.write(message.getBytes());
-				out.flush();
+			System.out.println(message);
+			out.write(message.getBytes());
+			out.flush();
 			
 			out.close();
 			
+			Integer retVal = conn.getResponseCode();
 			
-			System.out.println(conn.getResponseCode());   // 422 (user not created - already exists ? 
-															// or 201  ??
+			if (retVal.toString().startsWith("4"))
+				System.out.println("Successfully created subject");
+			else
+				System.out.println("Failed to create subject");   // 422 (user not created - already exists ? 
+															// or 201  = success
 		
 		}
 		csvReader.close();
+		System.out.println("Finished Creating Subjects.");
+		System.out.println("---------------------------");
 		
 	} catch (MalformedURLException e) {
 		// TODO Auto-generated catch block
@@ -217,6 +229,8 @@ public void createSubjectsFromFile(String csvFilename){
 	}
 	
 }
+
+
 
 public void createUsersFromFile(String csvFilename){
 	
@@ -229,27 +243,21 @@ public void createUsersFromFile(String csvFilename){
 		
 		while((row = csvReader.readNext()) != null) {		
 
-		server = new URL(this.urlBase+"/a"+"/users.xml?params[activate_user]=true");
-		
-		HttpURLConnection conn= (HttpURLConnection)server.openConnection();
-		conn.setDoOutput(true);
-		conn.setDoInput(true);
-		conn.setRequestProperty("content-type", "text/xml");
-
-		System.out.println("auth_token "+auth_token);
-		System.out.println("client_key "+client_key);
-		conn.setRequestProperty("auth_token", this.auth_token);
-		conn.setRequestProperty("client_key", this.client_key);
-
-
-		
-		OutputStream out = conn.getOutputStream();
-		
-		
-		
+			server = new URL(this.urlBase+"/a"+"/users.xml?params[activate_user]=true");
 			
+			HttpURLConnection conn= (HttpURLConnection)server.openConnection();
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setRequestProperty("content-type", "text/xml");
+	
+			System.out.println("auth_token "+auth_token);
+			System.out.println("client_key "+client_key);
+			conn.setRequestProperty("auth_token", this.auth_token);
+			conn.setRequestProperty("client_key", this.client_key);
+	
+			OutputStream out = conn.getOutputStream();
 			
-			
+
 			String message="<user>"+
             		"<login>"+row[3]+"</login>"+
             		"<password>password</password>"+
@@ -258,24 +266,18 @@ public void createUsersFromFile(String csvFilename){
             		"<first-name>"+row[0]+"</first-name>"+
             		"<last-name>"+row[1]+"</last-name>"+
             		"</user>";
-			
-			
+				
 			System.out.println(message);
-			System.out.println("============");
 			out.write(message.getBytes());
 			out.flush();
-		
-		
-	
-		
-		out.close();
-		
-		
-		System.out.println(conn.getResponseCode());   // 422 (user not created - already exists ? 
-														// or 201  ??
+			out.close();
+			System.out.println(conn.getResponseCode());   // 422 (user not created - already exists ? 
+															// or 201  ??
 		
 		}
 		csvReader.close();
+		System.out.println("Finished Creating users");
+		System.out.println("---------------------------");
 		
 	} catch (MalformedURLException e) {
 		// TODO Auto-generated catch block
@@ -287,7 +289,13 @@ public void createUsersFromFile(String csvFilename){
 	
 }
 
-String readStream(InputStream is) throws IOException {
+/**
+ * readStream
+ * @param is
+ * @return
+ * @throws IOException
+ */
+private String readStream(InputStream is) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
          StringBuffer sb = new StringBuffer();
@@ -298,7 +306,12 @@ String readStream(InputStream is) throws IOException {
          return sb.toString();
  }
 
-Document parseXml(String xml) {
+/**
+ * parseXml
+ * @param xml
+ * @return
+ */
+private Document parseXml(String xml) {
     InputSource is = new InputSource(new StringReader(xml));
     DocumentBuilderFactory builderFactory =  DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = null;
@@ -320,7 +333,29 @@ Document parseXml(String xml) {
 }
 
 
-Node firstElementByTag(Document d, String tag) {
+/**
+ * xmlContainsError
+ * @param d
+ * @return
+ */
+private Boolean xmlContainsError(Document doc){
+	NodeList list = doc.getElementsByTagName("Error");
+	if (list == null)  // this code is wrong !!!
+        return false;
+	else
+		return true;
+	
+}
+
+
+
+/**
+ * firstElementByTag
+ * @param d
+ * @param tag
+ * @return
+ */
+private Node firstElementByTag(Document d, String tag) {
     NodeList list = d.getElementsByTagName(tag);
     if (list == null) {
             return null;
@@ -332,31 +367,6 @@ Node firstElementByTag(Document d, String tag) {
     }
     return list.item(0);
 }
-
-
-// ------------- MAIN -------------------------
-
-
-public static void main(String[] args) {
-	
-	CreateTibbrSubjects tibbr = new CreateTibbrSubjects("https://tibbrdemo.tibbr.com","bsunderl","password");
-
- 	
-	try {
-		tibbr.loginUser();
-		//tibbr.createUsersFromFile("sample_users");
-		//tibbr.createSubjectsFromFile("sample_subjects");
-		
-		tibbr.getAllUsers();
-		
-		
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-
-}
-
 
 
 
