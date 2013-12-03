@@ -1,3 +1,6 @@
-ContentManagerTest,Content Manager Test Subject,public
-ContentManagerTest.A,A Subject,public
-ContentManagerTest.A.A_CHILD,As child Subject,public
+Top_level_Subject,Top Level,public
+Top_level_Subject.Plans_Meetings_And_Minutes,Plans| Meetings & Minutes,protected
+Top_level_Subject.Templates, Templates,protected
+Top_level_Subject.Merchandise,Merchandise,protected
+Top_level_Subject.Brand, Brand,protected
+Top_level_Subject.New_Ideas, New Ideas,protected

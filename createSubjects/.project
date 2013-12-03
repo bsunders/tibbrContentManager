@@ -14,4 +14,16 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>Home_sample_subjects</name>
+			<type>1</type>
+			<location>/Users/bensunderland/sample_subjects</location>
+		</link>
+		<link>
+			<name>Home_sample_users.csv</name>
+			<type>1</type>
+			<location>/Users/bensunderland/sample_users.csv</location>
+		</link>
+	</linkedResources>
 </projectDescription>

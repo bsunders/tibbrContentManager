@@ -7,10 +7,14 @@
 package ben.tibbr.api;
 
 
-// File formatfor SUBJECTS:
-// System_name,Description,Security
+// CSV File format for SUBJECTS:
+// <subject_name>,<displayname>,<security>
 //
-//    System name  <parent>.<new_subject>
+//   Where:
+//      <subject_name> is of form:  <parent_subject>.<new_subject>
+//		<displayname> is text
+//		<security> is public / protected / private
+//
 // e.g.   HLB.Divisions.Marketing_and_BD,HLB Subject,public
 
 // File format for USERS:
@@ -54,9 +58,9 @@ import javax.swing.Box;
 public class MainForm extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField txtCSVInput;
-	private JTextField txtTibbrURL = new JTextField("http://172.16.101.129");
-	private JTextField txtTibbrPassword = new JPasswordField("password");
+	private JTextField txtCSVInput = new JTextField("");
+	private JTextField txtTibbrURL = new JTextField("https://YOURSITE.tibbr.com");
+	private JTextField txtTibbrPassword = new JPasswordField("");
 	private JTextField txtTibbrUser = new JTextField("tibbradmin");
 	private JButton btnFileSelector;
 	private JFileChooser fc;
@@ -64,7 +68,7 @@ public class MainForm extends JFrame {
 	private JRadioButton rdbtnCreateUsers;
 	private JRadioButton rdbtnCreateSubjects;
 	private File file;
-	
+	private String filePath = "";
 	/**
 	 * Launch the application.
 	 */
@@ -124,7 +128,7 @@ public class MainForm extends JFrame {
 		lblGetCSV.setBounds(32, 276, 113, 16);
 		contentPane.add(lblGetCSV);
 		
-		txtCSVInput = new JTextField();
+		//txtCSVInput = new JTextField();
 		txtCSVInput.setBounds(158, 270, 266, 28);
 		contentPane.add(txtCSVInput);
 		txtCSVInput.setColumns(10);
@@ -190,7 +194,7 @@ public class MainForm extends JFrame {
 		
 		  // setup text area for the output console
         JTextArea consoleTextArea = new JTextArea("");
-        consoleTextArea.setPreferredSize(new Dimension(560, 246));
+        //consoleTextArea.setPreferredSize(new Dimension(560, 246));
         //float newSize = (float) 10.0;
 		Font biggerFont = consoleTextArea.getFont().deriveFont(10f );
 		consoleTextArea.setFont(biggerFont);
@@ -202,7 +206,8 @@ public class MainForm extends JFrame {
 		JScrollPane sp = new JScrollPane(consoleTextArea,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
+		sp.setPreferredSize(new Dimension(560, 246));
+		
 		// add the scroller (containing the console) to the panel 
 		pnlOutput.add(sp );
 		//for (int i=0; i<10; i++)
@@ -215,15 +220,19 @@ public class MainForm extends JFrame {
 	class ButtonListener implements ActionListener {
 
 	        public void actionPerformed(ActionEvent e) {
-	        	// FIle selector button pressed
+	        	
+	        	// File selector button pressed
 	            if (e.getSource() == btnFileSelector) {
 	                int returnVal = fc.showOpenDialog(MainForm.this);
 	     
 	                if (returnVal == JFileChooser.APPROVE_OPTION) {
 	                     file = fc.getSelectedFile();
-	                    //This is where a real application would open the file.
-	                    System.out.println("File Selected: " + file.getName() + ".\n");
-	                    txtCSVInput.setText(file.getPath());
+	                     filePath = file.getPath();
+	                     
+	                     
+	                     txtCSVInput.setText(filePath);
+	                    System.out.println("File Selected: " + filePath + ".\n");
+	                    
 	                } else {
 	                	System.out.println("Open command cancelled by user.\n" );
 	                }
@@ -231,6 +240,19 @@ public class MainForm extends JFrame {
 	            
 	            }  // Run button pressed. Select action based on radio.
 	            else if (e.getSource() == btnExecuteCommand) {
+	            	
+	            	if (filePath.isEmpty()){
+	            		// this means we haven't pressed the file choose button so check if we defaulted
+	            		if (!txtCSVInput.getText().isEmpty()){
+	            			filePath = txtCSVInput.getText();
+	            		}else
+	            		{
+	            			Alert("Please select an input CSV file.");
+	            			return;
+	            		}
+	            	}
+	            		
+	            	
 	               if ( tibbrCredsValid())
 	            	   CreateContent();
 	               else
@@ -241,14 +263,7 @@ public class MainForm extends JFrame {
 
 	    }
 	 
-	
-	
-	private void Alert(String message){
-		
-		JOptionPane.showMessageDialog(null, message);
-		
-	}
-	
+
 	
 	/**
 	 * CreateContent
@@ -267,15 +282,15 @@ public class MainForm extends JFrame {
             	if (!tibbr.loginUser())
             		return null;
             	
-            	System.out.println("Input file location: "+file.getPath());
+            	System.out.println("Input file location: "+filePath);
             	
             	if (rdbtnCreateSubjects.isSelected() ){
             		System.out.println("Creating Subjects...");   
-            		tibbr.createSubjectsFromFile(file.getPath());   
+            		tibbr.createSubjectsFromFile(filePath);   
 	            }
             	else if (rdbtnCreateUsers.isSelected()){
             		System.out.println("Creating Users...");   
-	            	tibbr.createUsersFromFile(file.getPath());  
+	            	tibbr.createUsersFromFile(filePath);  
 	            }
             		
             	return null;
@@ -299,7 +314,11 @@ public class MainForm extends JFrame {
 		return true;
 	}
 	
-	
+private void Alert(String message){
+		
+		JOptionPane.showMessageDialog(null, message);
+		
+	}
 	 
 }
 

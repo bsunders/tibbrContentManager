@@ -21,7 +21,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.w3c.dom.Document;
@@ -104,40 +103,11 @@ public Boolean loginUser() throws UnsupportedEncodingException{
 }
 
 
-public void getAllUsers(){
-	
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		String params = "?client_key="+this.client_key + "&auth_token="+this.auth_token;
-		HttpGet getRequest = new HttpGet(urlBase+"/a/users/1/search_users.xml"+params);
-		
-		System.out.println("auth_token: " + this.auth_token); 
-		
-		try {
-			HttpResponse response = httpClient.execute(getRequest);
-			
-			//String body = readStream(response.getEntity().getContent());
-			//Document user = parseXml(body);
-		    //Node auth_token_node = firstElementByTag(user, "auth-token");
-			//this.auth_token=auth_token_node.getNodeValue();
-			
-			
-	        
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	
-	
-}
-
 
 public void createMessages(String message){
 	
 	// call this to get all the user IDs in to hashmap.
-	getAllUsers();
+	//getAllUsers();
 	URL server;
 	try {
 		server = new URL(this.urlBase+"/a"+"/messages.xml");   // POST
@@ -171,13 +141,13 @@ public void createMessages(String message){
 	
 }
 
-public void createSubjectsFromFile(String csvFilename){
+public void createSubjectsFromFile(String csvFilename) throws InterruptedException{
 	
 	
 	URL server;
 	try {
 		
-		CSVReader csvReader = new CSVReader(new FileReader(csvFilename));
+		CSVReader csvReader = new CSVReader(new FileReader(csvFilename)); // updated to pipe delimiter
 		String[] row = null;
 		
 		while((row = csvReader.readNext()) != null) {		
@@ -193,10 +163,57 @@ public void createSubjectsFromFile(String csvFilename){
 			//String subjectOwnerID = getUserIDfromUserName(row[1]);
 			OutputStream out = conn.getOutputStream();
 	 
+			
+//			<?xml version="1.0" encoding="UTF-8"?>
+//            <subject>
+//            <name>testt4</name># To create a child subject, specify the fully
+//            qualified name, for example, testt4.childsubjectname
+//            <description></description>
+//            <scope>public</scope>
+//            <allow-children>1</allow-children>
+//            <user-id type="integer">52</user-id>
+//            </subject>
+            
+			//  sysname, desc, display name, security
+            //  CMT4,X Y Z,test name,public
+			// note subjects need at least 3 chars
+			
+			
+			 
+			String subjName = row[0];
+			//String subjDesc = row[1];
+			String subjDisplayName = row[1];
+			String subjSecurity = row[2];
+
+			
+			
+	// -----------  HLB subject load specific code START		
+			
+			// remove traliing "." from name and displayname
+			if (subjName.substring(subjName.length() - 1).equals(".")) 	
+				subjName = subjName.substring(0, subjName.length() - 1 );
+			
+			if (subjDisplayName.substring(subjDisplayName.length() - 1).equals(".")) 	
+				subjDisplayName = subjDisplayName.substring(0, subjDisplayName.length() - 1 );
+			
+			// grab last display name if more than 1
+			String[] arrDisplayName =  subjDisplayName.split("\\.");
+			
+			if (arrDisplayName.length > 1)	
+				subjDisplayName = arrDisplayName[arrDisplayName.length -1];
+			
+			// replace & with &amp;
+			subjDisplayName = subjDisplayName.replace("&", "&amp;");
+			subjDisplayName = subjDisplayName.replace("|", ",");
+			
+	// -----------------  HLB subject load specific code END
+			
+			
 			String message="<subject>" + 
-	            "<name>"+row[0]+"</name>" +
-	            "<description>"+row[1]+"</description>"+
-	            "<scope>"+row[2]+"</scope>" + 
+	            "<name>"+subjName+"</name>" +
+	            "<description></description>"+
+	            "<scope>"+subjSecurity+"</scope>" + 
+	           "<render_name>"+subjDisplayName+"</render_name>" + 
 	            "<allow-children>1</allow-children>"+     // note you cant assign owner other than logged in user
 	            "<user-id>1</user-id>"+
 	            "</subject>";
@@ -209,11 +226,15 @@ public void createSubjectsFromFile(String csvFilename){
 			
 			Integer retVal = conn.getResponseCode();
 			
-			if (retVal.toString().startsWith("4"))
-				System.out.println("Successfully created subject");
+			String error = conn.getResponseMessage();
+			
+			if (retVal.toString().startsWith("2")){
+				System.out.println("Successfully created subject");  //  201  = success
+				Thread.sleep(500);
+			}
 			else
-				System.out.println("Failed to create subject");   // 422 (user not created - already exists ? 
-															// or 201  = success
+				System.out.println("Failed to create subject with error: " + error);   // 422 (subject not created ) 
+															
 		
 		}
 		csvReader.close();
@@ -243,36 +264,43 @@ public void createUsersFromFile(String csvFilename){
 		
 		while((row = csvReader.readNext()) != null) {		
 
-			server = new URL(this.urlBase+"/a"+"/users.xml?params[activate_user]=true");
+			//server = new URL(this.urlBase+"/a"+"/users.xml?params[activate_user]=true");
+			//dont_notify
+			server = new URL(this.urlBase+"/a"+"/users.xml?params[dont_notify]=true");
 			
 			HttpURLConnection conn= (HttpURLConnection)server.openConnection();
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setRequestProperty("content-type", "text/xml");
 	
-			System.out.println("auth_token "+auth_token);
-			System.out.println("client_key "+client_key);
+			//System.out.println("auth_token "+auth_token);
+			//System.out.println("client_key "+client_key);
 			conn.setRequestProperty("auth_token", this.auth_token);
 			conn.setRequestProperty("client_key", this.client_key);
 	
 			OutputStream out = conn.getOutputStream();
 			
-
+			//bsunderl,password,Ben,Sunderland,bsunderl@tibco.com
 			String message="<user>"+
-            		"<login>"+row[3]+"</login>"+
-            		"<password>password</password>"+
-            		"<password-confirmation>password</password-confirmation>"+
-            		"<email>"+row[2]+"</email>"+
-            		"<first-name>"+row[0]+"</first-name>"+
-            		"<last-name>"+row[1]+"</last-name>"+
+            		"<login>"+row[0]+"</login>"+
+            		"<password>"+row[1]+"</password>"+
+            		"<password-confirmation>"+row[1]+"</password-confirmation>"+
+            		"<email>"+row[4]+"</email>"+
+            		"<first-name>"+row[2]+"</first-name>"+
+            		"<last-name>"+row[3]+"</last-name>"+
             		"</user>";
 				
 			System.out.println(message);
 			out.write(message.getBytes());
 			out.flush();
 			out.close();
-			System.out.println(conn.getResponseCode());   // 422 (user not created - already exists ? 
-															// or 201  ??
+			
+			Integer result = conn.getResponseCode();
+			
+			if (result.toString().startsWith("2"))
+				System.out.println("Created user successfully.");
+			else// 422 (user not created - already exists ? 
+				System.out.println("ERROR - Couldn't create user - please check input details.");											// or 201  ??
 		
 		}
 		csvReader.close();
@@ -340,7 +368,7 @@ private Document parseXml(String xml) {
  */
 private Boolean xmlContainsError(Document doc){
 	NodeList list = doc.getElementsByTagName("Error");
-	if (list == null)  // this code is wrong !!!
+	if (list.getLength() == 0)  
         return false;
 	else
 		return true;
